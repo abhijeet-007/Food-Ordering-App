@@ -58,11 +58,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build test image
-        run: docker build --target test -t ${{ env.PROJECT }}:test . || docker build -t ${{ env.PROJECT }}:test .
-
-      - name: Run tests
-        run: docker run --rm ${{ env.PROJECT }}:test
+      - name: Build & validate
+        run: docker build --target test -t ${{ env.PROJECT }}:test .
 
   # ── 3. Build & Push to ECR ─────────────────────────────────────────────────
   build:
