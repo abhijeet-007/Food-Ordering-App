@@ -1,2 +1,3 @@
 # infra-as-code-pipeline
-This is public repository created with fully functionally pipeline
+
+Fully functional AWS ECS deployment pipeline for `food-app`.
