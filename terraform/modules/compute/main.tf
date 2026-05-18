@@ -136,13 +136,13 @@ resource "aws_ecs_task_definition" "main" {
 
 # ECS Service
 resource "aws_ecs_service" "main" {
-  name                              = "${var.project}-${var.env}-service"
-  cluster                           = aws_ecs_cluster.main.id
-  task_definition                   = aws_ecs_task_definition.main.arn
-  desired_count                     = var.desired_count
-  launch_type                       = "FARGATE"
-  health_check_grace_period_seconds = 60
-  force_new_deployment              = true
+  name                               = "${var.project}-${var.env}-service"
+  cluster                            = aws_ecs_cluster.main.id
+  task_definition                    = aws_ecs_task_definition.main.arn
+  desired_count                      = var.desired_count
+  launch_type                        = "FARGATE"
+  health_check_grace_period_seconds  = 60
+  force_new_deployment               = true
 
   network_configuration {
     subnets          = var.private_subnet_ids
