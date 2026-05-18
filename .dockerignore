@@ -1,0 +1,9 @@
+.git
+.github
+terraform/
+scripts/
+docs/
+*.md
+*.hcl
+*.sh
+.dockerignore

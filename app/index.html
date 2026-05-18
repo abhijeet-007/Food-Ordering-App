@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodApp — Fresh Meals Delivered</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">🍽️ FoodApp</a>
+      <ul class="nav__links">
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#testimonials">Reviews</a></li>
+        <li><a href="#order" class="btn btn--sm">Order Now</a></li>
+      </ul>
+      <button class="nav__burger" aria-label="Toggle menu">&#9776;</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__content">
+      <span class="badge">🚀 Free delivery on first order</span>
+      <h1>Fresh meals,<br /><span class="highlight">delivered fast.</span></h1>
+      <p>Chef-crafted dishes made from locally sourced ingredients — at your door in under 30 minutes.</p>
+      <div class="hero__actions">
+        <a href="#order" class="btn btn--primary">Order Now</a>
+        <a href="#menu" class="btn btn--ghost">Browse Menu</a>
+      </div>
+      <div class="hero__stats">
+        <div class="stat"><strong>50k+</strong><span>Happy customers</span></div>
+        <div class="stat"><strong>4.9★</strong><span>Average rating</span></div>
+        <div class="stat"><strong>28 min</strong><span>Avg delivery</span></div>
+      </div>
+    </div>
+    <div class="hero__visual">
+      <div class="hero__plate">🥗</div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="categories">
+    <div class="container">
+      <div class="categories__grid">
+        <button class="cat cat--active" data-filter="all">All</button>
+        <button class="cat" data-filter="popular">🔥 Popular</button>
+        <button class="cat" data-filter="healthy">🥗 Healthy</button>
+        <button class="cat" data-filter="fast">⚡ Fast Food</button>
+        <button class="cat" data-filter="dessert">🍰 Desserts</button>
+        <button class="cat" data-filter="drinks">🥤 Drinks</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section class="menu" id="menu">
+    <div class="container">
+      <h2 class="section-title">Our Menu</h2>
+      <p class="section-sub">Handpicked favourites from our kitchen</p>
+      <div class="menu__grid" id="menuGrid">
+
+        <div class="card" data-category="popular healthy">
+          <div class="card__emoji">🥗</div>
+          <div class="card__body">
+            <span class="card__tag">Healthy</span>
+            <h3>Garden Fresh Salad</h3>
+            <p>Mixed greens, cherry tomatoes, cucumber, feta & lemon vinaigrette.</p>
+            <div class="card__footer">
+              <span class="price">$9.99</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Garden Fresh Salad', 9.99)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="popular fast">
+          <div class="card__emoji">🍔</div>
+          <div class="card__body">
+            <span class="card__tag popular-tag">Popular</span>
+            <h3>Classic Smash Burger</h3>
+            <p>Double smash patty, American cheese, pickles, special sauce, brioche bun.</p>
+            <div class="card__footer">
+              <span class="price">$13.99</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Classic Smash Burger', 13.99)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="healthy">
+          <div class="card__emoji">🍜</div>
+          <div class="card__body">
+            <span class="card__tag">Healthy</span>
+            <h3>Miso Ramen Bowl</h3>
+            <p>Rich miso broth, soft-boiled egg, noodles, corn, nori & spring onion.</p>
+            <div class="card__footer">
+              <span class="price">$14.49</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Miso Ramen Bowl', 14.49)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="fast popular">
+          <div class="card__emoji">🍕</div>
+          <div class="card__body">
+            <span class="card__tag popular-tag">Popular</span>
+            <h3>Margherita Pizza</h3>
+            <p>San Marzano tomato, fresh mozzarella, basil, extra virgin olive oil.</p>
+            <div class="card__footer">
+              <span class="price">$12.99</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Margherita Pizza', 12.99)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="healthy">
+          <div class="card__emoji">🌮</div>
+          <div class="card__body">
+            <span class="card__tag">Healthy</span>
+            <h3>Grilled Chicken Tacos</h3>
+            <p>Marinated chicken, avocado, pico de gallo, lime crema, corn tortillas.</p>
+            <div class="card__footer">
+              <span class="price">$11.49</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Grilled Chicken Tacos', 11.49)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="fast">
+          <div class="card__emoji">🍟</div>
+          <div class="card__body">
+            <span class="card__tag">Fast Food</span>
+            <h3>Loaded Fries</h3>
+            <p>Crispy fries, cheddar sauce, bacon bits, jalapeños & sour cream.</p>
+            <div class="card__footer">
+              <span class="price">$7.99</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Loaded Fries', 7.99)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="dessert">
+          <div class="card__emoji">🍰</div>
+          <div class="card__body">
+            <span class="card__tag dessert-tag">Dessert</span>
+            <h3>NY Cheesecake</h3>
+            <p>Classic New York style, graham cracker crust, fresh berry compote.</p>
+            <div class="card__footer">
+              <span class="price">$6.99</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'NY Cheesecake', 6.99)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="drinks">
+          <div class="card__emoji">🥤</div>
+          <div class="card__body">
+            <span class="card__tag drinks-tag">Drinks</span>
+            <h3>Fresh Lemonade</h3>
+            <p>Hand-squeezed lemons, mint, honey syrup, sparkling water.</p>
+            <div class="card__footer">
+              <span class="price">$3.99</span>
+              <button class="btn btn--add" onclick="addToCart(this, 'Fresh Lemonade', 3.99)">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="container">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-sub">Three simple steps to your next meal</p>
+      <div class="how__steps">
+        <div class="step">
+          <div class="step__icon">📱</div>
+          <h3>1. Browse & Pick</h3>
+          <p>Choose from 50+ dishes crafted by our in-house chefs.</p>
+        </div>
+        <div class="step__arrow">→</div>
+        <div class="step">
+          <div class="step__icon">💳</div>
+          <h3>2. Pay Securely</h3>
+          <p>Fast checkout with card, Apple Pay or Google Pay.</p>
+        </div>
+        <div class="step__arrow">→</div>
+        <div class="step">
+          <div class="step__icon">🛵</div>
+          <h3>3. Fast Delivery</h3>
+          <p>Your meal arrives hot in under 30 minutes, guaranteed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <h2 class="section-title">What customers say</h2>
+      <div class="testimonials__grid">
+        <div class="review">
+          <div class="review__stars">★★★★★</div>
+          <p>"Best food delivery I've ever used. The smash burger is absolutely incredible!"</p>
+          <span>— Sarah M.</span>
+        </div>
+        <div class="review">
+          <div class="review__stars">★★★★★</div>
+          <p>"Always on time, always fresh. FoodApp has completely replaced cooking for me."</p>
+          <span>— James K.</span>
+        </div>
+        <div class="review">
+          <div class="review__stars">★★★★★</div>
+          <p>"The ramen bowl is restaurant quality. Shocked it arrives this hot and fresh."</p>
+          <span>— Priya L.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORDER CTA -->
+  <section class="cta" id="order">
+    <div class="container">
+      <h2>Ready to order?</h2>
+      <p>Get 20% off your first order with code <strong>FIRST20</strong></p>
+      <form class="cta__form" onsubmit="handleOrder(event)">
+        <input type="text" placeholder="Enter your address" required />
+        <button type="submit" class="btn btn--primary">Find Food Near Me</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <span class="nav__logo">🍽️ FoodApp</span>
+        <p>© 2026 FoodApp. All rights reserved.</p>
+        <div class="footer__links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CART TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- CART WIDGET -->
+  <div class="cart-widget" id="cartWidget">
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒 <span id="cartCount">0</span>
+    </button>
+    <div class="cart-panel" id="cartPanel">
+      <h3>Your Order</h3>
+      <ul id="cartItems"></ul>
+      <div class="cart-total">Total: <strong id="cartTotal">$0.00</strong></div>
+      <button class="btn btn--primary" style="width:100%" onclick="checkout()">Checkout</button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
