@@ -7,7 +7,7 @@ REGION=$2
 PROJECT=$3
 CLUSTER="${PROJECT}-${ENV}-cluster"
 SERVICE="${PROJECT}-${ENV}-service"
-TIMEOUT=300   # 5 minutes
+TIMEOUT=300
 INTERVAL=15
 ELAPSED=0
 
@@ -37,7 +37,13 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
 
   echo "[${ELAPSED}s] running=${RUNNING} desired=${DESIRED} pending=${PENDING}"
 
-  if [ "$RUNNING" -eq "$DESIRED" ] && [ "$PENDING" -eq 0 ]; then
+  # Skip check if desired is 0 (infra-only deploy)
+  if [ "$DESIRED" -eq 0 ]; then
+    echo "Desired count is 0 — skipping health check."
+    exit 0
+  fi
+
+  if [ "$RUNNING" -eq "$DESIRED" ] && [ "$PENDING" -eq 0 ] && [ "$RUNNING" -gt 0 ]; then
     echo "Health check passed."
     exit 0
   fi
@@ -46,5 +52,5 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
   ELAPSED=$((ELAPSED + INTERVAL))
 done
 
-echo "Health check FAILED after ${TIMEOUT}s — triggering rollback"
+echo "Health check FAILED after ${TIMEOUT}s"
 exit 1

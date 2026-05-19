@@ -85,7 +85,9 @@ jobs:
         working-directory: terraform/envs/staging
         run: |
           terraform init "-backend-config=backend.hcl"
-          terraform apply -auto-approve -var="image_tag=latest"
+          terraform apply -auto-approve \
+            -var="image_tag=latest" \
+            -var="desired_count=0"
 
   # ── 4. Build & Push to ECR ─────────────────────────────────────────────────
   build:
@@ -187,7 +189,9 @@ jobs:
         working-directory: terraform/envs/prod
         run: |
           terraform init "-backend-config=backend.hcl"
-          terraform apply -auto-approve -var="image_tag=latest"
+          terraform apply -auto-approve \
+            -var="image_tag=latest" \
+            -var="desired_count=0"
 
   # ── 8. Deploy to Production ────────────────────────────────────────────────
   deploy-prod:
