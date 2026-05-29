@@ -12,6 +12,7 @@ terraform {
 resource "aws_ecr_repository" "main" {
   name                 = "${var.project}-${var.env}"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
 
   image_scanning_configuration {
     scan_on_push = true
@@ -176,7 +177,7 @@ resource "aws_ecs_service" "main" {
   }
 
   lifecycle {
-    ignore_changes = [task_definition, desired_count]
+    ignore_changes = [desired_count]
   }
 
   tags = var.tags

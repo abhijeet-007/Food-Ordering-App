@@ -150,6 +150,14 @@ jobs:
           terraform apply -auto-approve \
             -var="image_tag=${{ needs.build.outputs.image_tag }}"
 
+      - name: Force ECS service update
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.PROJECT }}-staging-cluster \
+            --service ${{ env.PROJECT }}-staging-service \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
       - name: Health check staging
         run: bash scripts/health-check.sh staging ${{ env.AWS_REGION }} ${{ env.PROJECT }}
 
