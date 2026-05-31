@@ -268,3 +268,4 @@ jobs:
             ${{ env.PROJECT }}-prod-service \
             "${{ steps.prev-task.outputs.task_def }}" \
             ${{ env.AWS_REGION }}
+
