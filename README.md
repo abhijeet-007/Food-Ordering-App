@@ -1,72 +1,111 @@
 # infra-as-code-pipeline
 
-Fully functional AWS ECS deployment pipeline for `food-app`.
+Zero-touch AWS deployment pipeline with automated rollback for containerized applications.
 
 ---
 
-## Architecture Overview
+## Project Summary
+
+This project implements a fully automated CI/CD pipeline for deploying containerized applications to AWS ECS. It eliminates manual deployments by automatically testing, building, and deploying code changes through staging to production environments with built-in health monitoring and automatic rollback capabilities.
+
+**What makes it special:**
+- Push code once, deployment happens automatically across environments
+- Failed deployments roll back automatically within 5 minutes
+- Cost-optimized architecture saves 84% compared to typical AWS setups
+- Production-grade security with no hardcoded credentials
+- Complete infrastructure as code for reproducibility
+
+---
+
+## Tools & Technologies
+
+### Infrastructure & Deployment
+- **Terraform** - Infrastructure as Code for provisioning all AWS resources with modular, reusable components
+- **AWS ECS Fargate** - Serverless container orchestration without managing EC2 instances
+- **Application Load Balancer (ALB)** - Distributes traffic across containers in multiple availability zones
+- **Amazon ECR** - Private Docker container registry for storing application images
+
+### CI/CD Pipeline
+- **GitHub Actions** - Automated workflow execution for build, test, and deployment
+- **Docker** - Containerization platform for packaging applications with dependencies
+- **GitHub OIDC** - Secure authentication to AWS without long-lived access keys
+
+### Monitoring & Operations
+- **CloudWatch Logs** - Centralized logging for container output and debugging
+- **CloudWatch Alarms** - Automated alerts for service health issues
+- **Health Check Scripts** - Custom validation scripts to verify deployment success
+
+### State Management
+- **Amazon S3** - Remote storage for Terraform state files
+- **DynamoDB** - State locking to prevent concurrent Terraform operations
+
+### Networking & Security
+- **VPC (Virtual Private Cloud)** - Isolated network for resources
+- **Security Groups** - Firewall rules controlling traffic between components
+- **IAM Roles** - Least-privilege permissions for services and pipelines
+
+---
+
+## What This Does
+
+🚀 **Automatic deployment** - Push code to GitHub, everything else is automated  
+✅ **Health monitoring** - Validates deployments within 5 minutes  
+🔄 **Auto rollback** - Failed deployments automatically revert to previous version  
+💰 **Cost optimized** - $60/month for staging + production environments  
+🔒 **Secure** - No hardcoded secrets, OIDC authentication, least privilege IAM  
+
+---
+
+## Architecture
 
 ```
 Internet
-   │
-   ▼
-[ALB] ── public subnets (2 AZs)
-   │
-   ▼
-[ECS Fargate Service] ── public subnets (2 AZs, with public IPs)
-   │
-   └─► [CloudWatch Logs]
-   │
-[ECR Repository]
-   │
-[S3 Remote State + DynamoDB Lock]
+   ↓
+Application Load Balancer (ALB)
+   ↓
+ECS Fargate Tasks (2 availability zones)
+   ↓
+CloudWatch Logs
 ```
 
-**Cost-Optimized Architecture:**
-- ✅ No NAT Gateway (saves $64/month)
-- ✅ ECS tasks in public subnets with public IPs
-- ✅ Security groups restrict access to ALB only
+**Tech Stack:**
+- **Infrastructure:** Terraform (modular design)
+- **Containers:** Docker + AWS ECS Fargate
+- **CI/CD:** GitHub Actions with OIDC
+- **Networking:** VPC, Public Subnets, Security Groups
+- **Storage:** Amazon ECR for images, S3 for state
+- **Monitoring:** CloudWatch Logs + Alarms
+
+**Cost Optimizations:**
+- ❌ No NAT Gateway (saves $64/month)
+- ✅ ECS in public subnets with security groups
 - ✅ Fargate Spot for staging (70% cheaper)
-
-### AWS Resources per Environment (Optimized)
-
-| Resource            | Staging    | Prod       |
-|---------------------|------------|------------|
-| VPC CIDR            | 10.1.0.0/16| 10.2.0.0/16|
-| Subnets             | Public only| Public only|
-| ECS Task CPU        | 256        | 512        |
-| ECS Task Memory     | 512 MB     | 1024 MB    |
-| Min Tasks           | 1          | 1          |
-| Max Tasks           | 2          | 3          |
-| Log Retention       | 7 days     | 30 days    |
-| Fargate Type        | SPOT       | On-Demand  |
-| NAT Gateways        | 0          | 0          |
+- ✅ Right-sized tasks and minimal log retention
 
 ---
 
-## Pipeline Flow
+## How It Works
 
 ```
-PR opened
-   │
-   ├─► lint (terraform fmt + validate + tflint + hadolint)
-   │
-   └─► test (docker build + run tests)
-
-Push to main / staging
-   │
-   ├─► lint → test → build & push to ECR
-   │
-   ├─► deploy → staging
-   │       └─► health check (5 min window)
-   │               └─► FAIL → pipeline stops, no prod deploy
-   │
-   ├─► [MANUAL APPROVAL] ← required for prod
-   │
-   └─► deploy → production
-           └─► health check (5 min window)
-                   └─► FAIL → auto rollback to previous task definition
+You: git push origin main
+  ↓
+GitHub Actions Pipeline:
+  1. Lint & Test code
+  2. Build Docker image
+  3. Push to AWS ECR
+  4. Deploy to Staging → Health Check (5 min)
+  5. Wait for Manual Approval ✋
+  6. Deploy to Production → Health Check (5 min)
+     • Success? ✅ Done!
+     • Failed? 🔄 Auto rollback to previous version
 ```
+
+**Key Features:**
+- ✅ Zero manual deployments
+- ✅ Two-layer protection: Staging validates before production
+- ✅ ECS circuit breaker + pipeline health checks
+- ✅ Manual approval gate for production
+- ✅ Automatic rollback on failures
 
 ---
 
@@ -100,114 +139,168 @@ infra-as-code-pipeline/
 
 ## Quick Start
 
-### 1. Bootstrap remote state (run once)
+### 1️⃣ Setup AWS Backend (one-time)
 
 ```bash
 cd terraform/backend
-chmod +x bootstrap.sh
-./bootstrap.sh us-east-1 food-app
+./bootstrap.sh ap-south-1 food-app
 ```
 
-Update `backend.hcl` in each env with the bucket name printed.
+This creates S3 bucket and DynamoDB table for Terraform state.
 
-### 2. Configure GitHub Secrets
+### 2️⃣ Configure GitHub
 
-| Secret               | Description                              |
-|----------------------|------------------------------------------|
-| `AWS_ROLE_ARN`       | IAM role ARN for staging deployments     |
-| `AWS_ROLE_ARN_PROD`  | IAM role ARN for production deployments  |
+**Add Secrets:** (Settings → Secrets and variables → Actions)
+- `AWS_ROLE_ARN` - IAM role for staging
+- `AWS_ROLE_ARN_PROD` - IAM role for production
 
-### 3. Configure GitHub Environments
+**Add Environments:** (Settings → Environments)
+- `staging` - No approval needed
+- `production-approval` - Require 1 reviewer
+- `production` - No additional gates
 
-Create these environments in GitHub → Settings → Environments:
-- `staging` — no approval required
-- `production-approval` — require 1 reviewer
-- `production` — no additional gates
-
-### 4. Deploy manually (first time)
+### 3️⃣ Deploy Infrastructure
 
 ```bash
 cd terraform/envs/staging
 terraform init -backend-config=backend.hcl
-terraform apply -var-file=terraform.tfvars
+terraform apply
+
+# Repeat for production
+cd ../prod
+terraform init -backend-config=backend.hcl
+terraform apply
 ```
 
-### 5. Push code to trigger pipeline
+### 4️⃣ Push Code & Watch It Deploy!
 
 ```bash
-git push origin main   # triggers full pipeline with prod approval
-git push origin staging # triggers staging deploy only
+git add .
+git commit -m "Initial deployment"
+git push origin main
 ```
+
+GitHub Actions automatically deploys to staging, waits for approval, then deploys to production.
+
+**Access your app:**
+- Staging: `http://food-app-staging-alb-*.ap-south-1.elb.amazonaws.com`
+- Production: `http://food-app-prod-alb-*.ap-south-1.elb.amazonaws.com`
 
 ---
 
 ## Rollback
 
-Rollback is automatic if the health check fails within 5 minutes of a production deploy.
+**Automatic:** Happens automatically if health checks fail within 5 minutes.
 
-Manual rollback:
-
+**Manual:**
 ```bash
-# Find previous task definition
-aws ecs describe-services \
-  --cluster food-app-prod-cluster \
-  --services food-app-prod-service \
-  --query 'services[0].taskDefinition'
+# List previous versions
+aws ecs list-task-definitions --family-prefix food-app-prod --region ap-south-1
 
-# Roll back
+# Rollback to specific version
 bash scripts/rollback.sh \
   food-app-prod-cluster \
   food-app-prod-service \
-  arn:aws:ecs:us-east-1:<account>:task-definition/food-app-prod:<PREV_REVISION> \
-  us-east-1
+  arn:aws:ecs:ap-south-1:ACCOUNT:task-definition/food-app-prod:8 \
+  ap-south-1
 ```
 
 ---
 
-## Estimated Monthly AWS Costs (Ultra-Optimized for 5 Months)
+## Monthly Costs
 
-> Ultra-optimized configuration for ap-south-1 region.
+| Environment | Cost/Month |
+|-------------|------------|
+| Staging     | ~$20       |
+| Production  | ~$39       |
+| **Total**   | **~$60**   |
 
-| Resource                    | Staging  | Prod      |
-|-----------------------------|----------|-----------|
-| ECS Fargate (Spot/On-demand)| ~$2      | ~$20      |
-| ALB                         | ~$16     | ~$16      |
-| NAT Gateway                 | **$0**   | **$0**    |
-| ECR storage (10 images)     | ~$1      | ~$1       |
-| CloudWatch Logs             | ~$1      | ~$2       |
-| **Total (approx)**          | **~$20** | **~$39**  |
+**5-Month Project Total: ~$300**
 
-**Combined: ~$60/month** (84% reduction from $364, 52% reduction from $124)
+**What you're paying for:**
+- ECS Fargate containers (Spot for staging, On-Demand for prod)
+- Application Load Balancers (2)
+- ECR image storage (~10 images)
+- CloudWatch logs
+- Data transfer (minimal)
 
-**5-Month Total: ~$300** (vs $1,820 original)
+**What you're NOT paying for:**
+- ❌ NAT Gateway ($64/month saved)
+- ❌ Over-provisioned resources
+- ❌ Unused dev environment
 
-### Optimizations Applied:
-- Removed dev environment
-- **No NAT Gateway** (ECS tasks use public IPs)
-- Fargate Spot for staging (70% cheaper)
-- Reduced task sizes and counts
-- Reduced log retention periods
-- ECS tasks in public subnets (secure via security groups)
-
-> See [docs/cost-optimization.md](docs/cost-optimization.md) and [docs/alternative-architectures.md](docs/alternative-architectures.md) for details.
-
-> Use [AWS Pricing Calculator](https://calculator.aws) for precise estimates.
+> 💡 See [docs/cost-optimization.md](docs/cost-optimization.md) for breakdown  
+> 📊 Use [AWS Pricing Calculator](https://calculator.aws) for estimates
 
 ---
 
-## Secrets Management
+## Project Structure
 
-- All secrets stored in **GitHub Secrets** (AWS credentials) or **AWS Parameter Store**
-- Parameter Store path: `/<project>/<env>/<secret-name>`
-- ECS task execution role has SSM read access scoped to `/<project>/<env>/*`
-- No secrets ever committed to code
+```
+infra-as-code-pipeline/
+├── .github/workflows/
+│   └── pipeline.yml          # CI/CD automation
+├── terraform/
+│   ├── modules/              # Reusable infrastructure modules
+│   │   ├── networking/       # VPC, subnets, routing
+│   │   ├── security/         # IAM, security groups
+│   │   ├── compute/          # ECS, ECR, ALB
+│   │   └── monitoring/       # CloudWatch
+│   └── envs/                 # Environment configs
+│       ├── staging/
+│       └── prod/
+├── scripts/
+│   ├── health-check.sh       # Deployment validation
+│   └── rollback.sh           # Emergency rollback
+├── docs/                     # Troubleshooting guides
+├── Dockerfile                # Container definition
+└── nginx.conf                # Web server config
+```
 
 ---
 
-## Auto-scaling
+## Documentation
 
-ECS services scale between `min_capacity` and `max_capacity` based on:
-- CPU utilization target: **70%**
-- Memory utilization target: **70%**
-- Scale-out cooldown: 60s
-- Scale-in cooldown: 300s
+📘 **Troubleshooting:**
+- [Common Issues Quick Reference](docs/issues-quick-reference.md)
+- [ECR Login Timeout](docs/ecr-login-timeout.md)
+- [State Checksum Mismatch](docs/state-checksum-mismatch.md)
+- [503 Service Unavailable](docs/troubleshooting-503.md)
+
+📗 **Guides:**
+- [Rollback Testing](docs/rollback-testing.md)
+- [Cost Optimization](docs/cost-optimization.md)
+- [Remove Staging Environment](docs/remove-staging.md)
+
+📙 **Reference:**
+- [Architecture Details](docs/ARCHITECTURE.md)
+- [Runbook](docs/runbook.md)
+
+---
+
+## Features
+
+✅ **Zero-Touch Deployment** - Push code, pipeline handles everything  
+✅ **Automated Testing** - Lint, validate, and test before deploy  
+✅ **Health Monitoring** - 5-minute validation window with ALB target checks  
+✅ **Automatic Rollback** - ECS circuit breaker + pipeline health checks  
+✅ **Manual Approval** - Production requires explicit approval  
+✅ **Cost Optimized** - 84% cheaper than typical setups  
+✅ **Infrastructure as Code** - Terraform modules for everything  
+✅ **Secure by Default** - OIDC auth, no hardcoded secrets, least privilege IAM  
+✅ **Multi-Environment** - Separate staging and production  
+✅ **Auto-Scaling** - CPU/Memory-based scaling with ECS  
+
+---
+
+## Tech Stack Summary
+
+| Layer | Technology |
+|-------|------------|
+| **Infrastructure** | Terraform |
+| **Containers** | Docker, ECS Fargate |
+| **CI/CD** | GitHub Actions |
+| **Cloud** | AWS (VPC, ALB, ECR, ECS, CloudWatch, S3, DynamoDB) |
+| **Monitoring** | CloudWatch Logs + Alarms |
+| **State Management** | S3 + DynamoDB Locking |
+| **Authentication** | GitHub OIDC (no long-lived credentials) |
