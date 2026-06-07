@@ -13,6 +13,14 @@ ELAPSED=0
 
 echo "Health check: $SERVICE in $CLUSTER"
 
+# Get target group ARN
+TG_ARN=$(aws elbv2 describe-target-groups \
+  --region "$REGION" \
+  --query "TargetGroups[?contains(TargetGroupName, '${PROJECT}-${ENV}')].TargetGroupArn" \
+  --output text)
+
+echo "Target Group: $TG_ARN"
+
 while [ $ELAPSED -lt $TIMEOUT ]; do
   RUNNING=$(aws ecs describe-services \
     --cluster "$CLUSTER" \
@@ -35,7 +43,14 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     --query 'services[0].pendingCount' \
     --output text)
 
-  echo "[${ELAPSED}s] running=${RUNNING} desired=${DESIRED} pending=${PENDING}"
+  # Check ALB target health
+  HEALTHY=$(aws elbv2 describe-target-health \
+    --target-group-arn "$TG_ARN" \
+    --region "$REGION" \
+    --query "length(TargetHealthDescriptions[?TargetHealth.State=='healthy'])" \
+    --output text)
+
+  echo "[${ELAPSED}s] running=${RUNNING} desired=${DESIRED} pending=${PENDING} healthy=${HEALTHY}"
 
   # Skip check if desired is 0 (infra-only deploy)
   if [ "$DESIRED" -eq 0 ]; then
@@ -43,8 +58,9 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     exit 0
   fi
 
-  if [ "$RUNNING" -eq "$DESIRED" ] && [ "$PENDING" -eq 0 ] && [ "$RUNNING" -gt 0 ]; then
-    echo "Health check passed."
+  # Success: All targets healthy and running
+  if [ "$HEALTHY" -eq "$DESIRED" ] && [ "$RUNNING" -eq "$DESIRED" ] && [ "$PENDING" -eq 0 ]; then
+    echo "Health check passed: All $HEALTHY/$DESIRED targets healthy."
     exit 0
   fi
 
@@ -53,4 +69,5 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
 done
 
 echo "Health check FAILED after ${TIMEOUT}s"
+echo "Final state: running=${RUNNING} desired=${DESIRED} healthy=${HEALTHY}"
 exit 1
