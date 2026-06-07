@@ -41,13 +41,13 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_eip" "nat" {
-  count  = 0  # Disabled to save costs
+  count  = 0 # Disabled to save costs
   domain = "vpc"
   tags   = merge(var.tags, { Name = "${var.project}-${var.env}-eip-1" })
 }
 
 resource "aws_nat_gateway" "main" {
-  count         = 0  # Disabled to save costs
+  count         = 0 # Disabled to save costs
   allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
 
@@ -66,7 +66,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
-  count  = 0  # No NAT Gateway, so no private route table needed
+  count  = 0 # No NAT Gateway, so no private route table needed
   vpc_id = aws_vpc.main.id
 
   route {
@@ -84,7 +84,7 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_route_table_association" "private" {
-  count          = 0  # No private route table
+  count          = 0 # No private route table
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
 }
