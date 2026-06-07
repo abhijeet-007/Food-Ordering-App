@@ -70,7 +70,7 @@ module "compute" {
   aws_region             = var.aws_region
   vpc_id                 = module.networking.vpc_id
   public_subnet_ids      = module.networking.public_subnet_ids
-  private_subnet_ids     = module.networking.private_subnet_ids
+  private_subnet_ids     = module.networking.public_subnet_ids  # Use public subnets for ECS tasks
   alb_sg_id              = module.security.alb_sg_id
   ecs_sg_id              = module.security.ecs_sg_id
   ecs_execution_role_arn = module.security.ecs_execution_role_arn

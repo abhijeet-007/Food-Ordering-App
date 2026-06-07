@@ -11,10 +11,13 @@ variable "vpc_id" {
   type = string
 }
 variable "public_subnet_ids" {
-  type = list(string)
+  type        = list(string)
+  description = "Public subnet IDs for ECS tasks (no NAT required)"
 }
 variable "private_subnet_ids" {
-  type = list(string)
+  type        = list(string)
+  default     = []
+  description = "Not used - kept for compatibility"
 }
 variable "alb_sg_id" {
   type = string

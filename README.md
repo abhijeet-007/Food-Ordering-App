@@ -13,25 +13,34 @@ Internet
 [ALB] ── public subnets (2 AZs)
    │
    ▼
-[ECS Fargate Service] ── private subnets (2 AZs)
-   │                         │
-   │                    [CloudWatch Logs]
+[ECS Fargate Service] ── public subnets (2 AZs, with public IPs)
+   │
+   └─► [CloudWatch Logs]
    │
 [ECR Repository]
    │
 [S3 Remote State + DynamoDB Lock]
 ```
 
-### AWS Resources per Environment
+**Cost-Optimized Architecture:**
+- ✅ No NAT Gateway (saves $64/month)
+- ✅ ECS tasks in public subnets with public IPs
+- ✅ Security groups restrict access to ALB only
+- ✅ Fargate Spot for staging (70% cheaper)
 
-| Resource            | Dev        | Staging    | Prod       |
-|---------------------|------------|------------|------------|
-| VPC CIDR            | 10.0.0.0/16| 10.1.0.0/16| 10.2.0.0/16|
-| ECS Task CPU        | 256        | 512        | 1024       |
-| ECS Task Memory     | 512 MB     | 1024 MB    | 2048 MB    |
-| Min Tasks           | 1          | 2          | 2          |
-| Max Tasks           | 2          | 4          | 6          |
-| Log Retention       | 7 days     | 14 days    | 90 days    |
+### AWS Resources per Environment (Optimized)
+
+| Resource            | Staging    | Prod       |
+|---------------------|------------|------------|
+| VPC CIDR            | 10.1.0.0/16| 10.2.0.0/16|
+| Subnets             | Public only| Public only|
+| ECS Task CPU        | 256        | 512        |
+| ECS Task Memory     | 512 MB     | 1024 MB    |
+| Min Tasks           | 1          | 1          |
+| Max Tasks           | 2          | 3          |
+| Log Retention       | 7 days     | 30 days    |
+| Fargate Type        | SPOT       | On-Demand  |
+| NAT Gateways        | 0          | 0          |
 
 ---
 
@@ -155,18 +164,32 @@ bash scripts/rollback.sh \
 
 ---
 
-## Estimated Monthly AWS Costs
+## Estimated Monthly AWS Costs (Ultra-Optimized for 5 Months)
 
-> Estimates based on us-east-1, on-demand pricing.
+> Ultra-optimized configuration for ap-south-1 region.
 
-| Resource                    | Dev      | Staging  | Prod      |
-|-----------------------------|----------|----------|-----------|
-| ECS Fargate (tasks)         | ~$5      | ~$25     | ~$80      |
-| ALB                         | ~$16     | ~$16     | ~$16      |
-| NAT Gateway (2 AZs)         | ~$65     | ~$65     | ~$65      |
-| ECR storage (10 images)     | ~$1      | ~$1      | ~$1       |
-| CloudWatch Logs             | ~$1      | ~$2      | ~$5       |
-| **Total (approx)**          | **~$88** | **~$109**| **~$167** |
+| Resource                    | Staging  | Prod      |
+|-----------------------------|----------|-----------|
+| ECS Fargate (Spot/On-demand)| ~$2      | ~$20      |
+| ALB                         | ~$16     | ~$16      |
+| NAT Gateway                 | **$0**   | **$0**    |
+| ECR storage (10 images)     | ~$1      | ~$1       |
+| CloudWatch Logs             | ~$1      | ~$2       |
+| **Total (approx)**          | **~$20** | **~$39**  |
+
+**Combined: ~$60/month** (84% reduction from $364, 52% reduction from $124)
+
+**5-Month Total: ~$300** (vs $1,820 original)
+
+### Optimizations Applied:
+- Removed dev environment
+- **No NAT Gateway** (ECS tasks use public IPs)
+- Fargate Spot for staging (70% cheaper)
+- Reduced task sizes and counts
+- Reduced log retention periods
+- ECS tasks in public subnets (secure via security groups)
+
+> See [docs/cost-optimization.md](docs/cost-optimization.md) and [docs/alternative-architectures.md](docs/alternative-architectures.md) for details.
 
 > Use [AWS Pricing Calculator](https://calculator.aws) for precise estimates.
 

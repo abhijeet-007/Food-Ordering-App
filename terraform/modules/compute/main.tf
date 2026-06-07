@@ -96,7 +96,7 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
   capacity_providers = ["FARGATE", "FARGATE_SPOT"]
 
   default_capacity_provider_strategy {
-    capacity_provider = "FARGATE"
+    capacity_provider = var.env == "staging" ? "FARGATE_SPOT" : "FARGATE"
     weight            = 1
   }
 }
@@ -151,14 +151,19 @@ resource "aws_ecs_service" "main" {
   cluster                           = aws_ecs_cluster.main.id
   task_definition                   = aws_ecs_task_definition.main.arn
   desired_count                     = var.desired_count
-  launch_type                       = "FARGATE"
   health_check_grace_period_seconds = 60
   force_new_deployment              = true
 
+  capacity_provider_strategy {
+    capacity_provider = var.env == "staging" ? "FARGATE_SPOT" : "FARGATE"
+    weight            = 100
+    base              = 0
+  }
+
   network_configuration {
-    subnets          = var.private_subnet_ids
+    subnets          = var.public_subnet_ids  # Changed to public subnets
     security_groups  = [var.ecs_sg_id]
-    assign_public_ip = false
+    assign_public_ip = true  # Changed to true for internet access without NAT
   }
 
   load_balancer {
