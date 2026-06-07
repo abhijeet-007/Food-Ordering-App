@@ -161,9 +161,9 @@ resource "aws_ecs_service" "main" {
   }
 
   network_configuration {
-    subnets          = var.public_subnet_ids  # Changed to public subnets
+    subnets          = var.private_subnet_ids
     security_groups  = [var.ecs_sg_id]
-    assign_public_ip = true  # Changed to true for internet access without NAT
+    assign_public_ip = true
   }
 
   load_balancer {
